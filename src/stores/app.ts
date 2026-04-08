@@ -58,7 +58,16 @@ export const useGalleryStore = defineStore("galleries", {
           });
         });
 
-        this.galleries = this.shuffleArray(allImages);
+        if (allImages.length === 0) {
+          this.galleries = this.shuffleArray(
+            fallbackGallery.map((img, i) => ({
+              id: `fallback-${i}`,
+              imageUrl: img,
+            })),
+          );
+        } else {
+          this.galleries = this.shuffleArray(allImages);
+        }
       } catch (error) {
         console.error("Failed to fetch galleries:", error);
         this.galleries = this.shuffleArray(
