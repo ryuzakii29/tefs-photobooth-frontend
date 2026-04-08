@@ -1,13 +1,13 @@
 import { defineStore } from "pinia";
 import axios from "axios";
-import { packageStore, userStore, fallbackGallery } from "@/stores/state";
+import { fallbackGallery } from "@/stores/state";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API = `${BASE_URL}/api`;
 
 export const usePackageStore = defineStore("packages", {
   state: () => ({
-    packages: packageStore?.packages || [],
+    packages: [],
   }),
   getters: {
     allPackages: (state) => state.packages,
