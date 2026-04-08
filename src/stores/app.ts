@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import axios from "axios";
-import { packageStore, userStore } from "@/stores/state";
+import { packageStore, userStore, fallbackGallery } from "@/stores/state";
 
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL;
@@ -49,12 +49,17 @@ export const useGalleryStore = defineStore("galleries", {
           // Target the flat image array
           const imagesArray = item.image || [];
 
-          return imagesArray.map((img: any) => ({
-            id: img.id,
-            imageUrl: img.attributes?.url
-              ? `${BASE_URL}${img.attributes.url}`
-              : `https://placehold.co/600x400?text=No+Image`,
-          }));
+          return imagesArray.map((img: any, index: number) => {
+            // Check if the URL actually exists from Strapi
+            const hasStrapiImage = img.attributes?.url;
+
+            return {
+              id: img.id,
+              imageUrl: hasStrapiImage
+                ? `${BASE_URL}${img.attributes.url}`
+                : `/assets/gallery/${fallbackGallery[index % fallbackGallery.length]}`,
+            };
+          });
         });
 
         this.galleries = this.shuffleArray(allImages);
