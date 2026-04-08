@@ -5,27 +5,27 @@ const router = createRouter({
   routes: [
     {
       path: "/home",
-      component: import("@/pages/home.vue"),
+      component: () => import("@/pages/home.vue"),
     },
     {
       path: "/packages",
-      component: import("@/pages/packages.vue"),
+      component: () => import("@/pages/packages.vue"),
     },
     {
       path: "/gallery",
-      component: import("@/pages/gallery.vue"),
+      component: () => import("@/pages/gallery.vue"),
     },
     {
       path: "/about",
-      component: import("@/pages/about.vue"),
+      component: () => import("@/pages/about.vue"),
     },
     {
       path: "/contact",
-      component: import("@/pages/contact.vue"),
+      component: () => import("@/pages/contact.vue"),
     },
     {
       path: "/reservation",
-      component: import("@/pages/reservation.vue"),
+      component: () => import("@/pages/reservation.vue"),
     },
     {
       path: "/reservation/:id",
@@ -46,13 +46,5 @@ const router = createRouter({
     return { top: 0, behavior: "smooth" };
   },
 });
-
-// router.beforeEach((to, from, next) => {
-//   if (to.path === "/") {
-//     next("/home");
-//   } else {
-//     next();
-//   }
-// });
 
 export default router;
