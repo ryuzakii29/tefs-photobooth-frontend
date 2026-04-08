@@ -49,27 +49,16 @@ export const useGalleryStore = defineStore("galleries", {
           const imagesArray = item.image || [];
 
           return imagesArray.map((img: any, index: number) => {
-            const strapiPath = img.attributes?.url || img.url;
-
-            return {
+            return imagesArray.map((img: any) => ({
               id: img.id,
-              imageUrl: strapiPath
-                ? `${BASE_URL}${strapiPath}`
+              imageUrl: img.attributes?.url
+                ? `${BASE_URL}${img.attributes.url}`
                 : fallbackGallery[index % fallbackGallery.length],
-            };
+            }));
           });
         });
 
-        if (allImages.length === 0) {
-          this.galleries = this.shuffleArray(
-            fallbackGallery.map((img, i) => ({
-              id: `fallback-${i}`,
-              imageUrl: img,
-            })),
-          );
-        } else {
-          this.galleries = this.shuffleArray(allImages);
-        }
+        this.galleries = this.shuffleArray(allImages);
       } catch (error) {
         console.error("Failed to fetch galleries:", error);
         this.galleries = this.shuffleArray(
