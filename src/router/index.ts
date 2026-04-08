@@ -3,6 +3,19 @@ import { createRouter, createWebHistory } from "vue-router";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    { path: "/login", component: () => import("@/pages/login.vue") },
+    {
+      path: "/admin/reservations",
+      component: () => import("../views/AdminReservations.vue"),
+      beforeEnter: (to, from, next) => {
+        const token = localStorage.getItem("strapi_jwt");
+        if (!token) {
+          next("/login"); // Redirect to your Vue login page
+        } else {
+          next(); // Allow entry
+        }
+      },
+    },
     {
       path: "/home",
       component: () => import("@/pages/home.vue"),
@@ -24,10 +37,6 @@ const router = createRouter({
       component: () => import("@/pages/contact.vue"),
     },
     {
-      path: "/reservation",
-      component: () => import("@/pages/reservation.vue"),
-    },
-    {
       path: "/reservation/:id",
       name: "reserved-view",
       component: () => import("@/pages/reserved.vue"),
@@ -45,6 +54,18 @@ const router = createRouter({
   scrollBehavior(to, from, savedPosition) {
     return { top: 0, behavior: "smooth" };
   },
+});
+
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem("strapi_jwt");
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next("/login");
+  } else if (to.path === "/login" && isAuthenticated) {
+    next("/admin/reservations"); // Already logged in? Skip login page.
+  } else {
+    next();
+  }
 });
 
 export default router;
