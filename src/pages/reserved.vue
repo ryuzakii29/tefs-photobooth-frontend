@@ -81,8 +81,9 @@ const statusColor = computed(() => {
 
 onMounted(async () => {
     try {
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1337'
         // Strapi filter syntax: filters[field][$eq]=value
-        const response = await fetch(`http://localhost:1337/api/reservations?filters[url][$eq]=${trackingId}`)
+        const response = await fetch(`${BASE_URL}/api/reservations?filters[url][$eq]=${trackingId}`)
         const result = await response.json()
 
         // Strapi returns an array in result.data

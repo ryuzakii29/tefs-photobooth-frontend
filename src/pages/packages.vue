@@ -1,6 +1,7 @@
 <template>
     THIS IS PACKAGE
     <v-container class="py-10">
+        <p v-if="packageStore.packages.length === 0">Loading packages or no data found...</p>
         <div v-for="(item, index) in packageStore.allPackages" :key="item.id" class="mb-12">
             <v-row align="center" :class="index % 2 !== 0 ? 'flex-row-reverse' : ''">
                 <v-col cols="12" md="6">
