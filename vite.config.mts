@@ -6,6 +6,7 @@ import Vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/",
   build: {
     sourcemap: false, // Disabling this makes the build significantly faster
     cssCodeSplit: true,
