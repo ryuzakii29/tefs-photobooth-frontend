@@ -16,6 +16,9 @@ export const usePackageStore = defineStore("packages", {
   state: () => ({
     packages: [] as any[],
   }),
+  getters: {
+    allPackages: (state) => state.packages,
+  },
   actions: {
     async fetchPackages() {
       try {
