@@ -50,21 +50,35 @@ export const useGalleryStore = defineStore("galleries", {
           const imagesArray = item.image || [];
 
           return imagesArray.map((img: any, index: number) => {
-            // Check if the URL actually exists from Strapi
-            const hasStrapiImage = img.attributes?.url;
+            // Check if URL exists.
+            // NOTE: Strapi v4 uses img.attributes.url, Strapi v5 often uses img.url directly.
+            const strapiPath = img.attributes?.url || img.url;
 
             return {
               id: img.id,
-              imageUrl: hasStrapiImage
-                ? `${BASE_URL}${img.attributes.url}`
-                : `/assets/gallery/${fallbackGallery[index % fallbackGallery.length]}`,
+              // REMOVED quotes around fallbackGallery to access the actual array
+              imageUrl: strapiPath
+                ? `${BASE_URL}${strapiPath}`
+                : fallbackGallery[index % fallbackGallery.length],
             };
           });
         });
 
-        this.galleries = this.shuffleArray(allImages);
+        if (allImages.length === 0) {
+          this.galleries = this.shuffleArray(
+            fallbackGallery.map((img, i) => ({
+              id: `fallback-${i}`,
+              imageUrl: img,
+            })),
+          );
+        } else {
+          this.galleries = this.shuffleArray(allImages);
+        }
       } catch (error) {
         console.error("Failed to fetch galleries:", error);
+        this.galleries = this.shuffleArray(
+          fallbackGallery.map((img, i) => ({ id: `err-${i}`, imageUrl: img })),
+        );
       }
     },
 
