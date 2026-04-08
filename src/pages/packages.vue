@@ -1,5 +1,4 @@
 <template>
-    THIS IS PACKAGE
     <v-container class="py-10">
         <p v-if="packageStore.packages.length === 0">Loading packages or no data found...</p>
         <div v-for="(item, index) in packageStore.allPackages" :key="item.id" class="mb-12">

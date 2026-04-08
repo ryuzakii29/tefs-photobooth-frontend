@@ -1,5 +1,4 @@
 <template>
-    GALLERY
     <v-container>
         <v-row>
             <v-col v-for="gallery in galleryStore.galleries" :key="gallery.id" cols="12" sm="6" md="4">
