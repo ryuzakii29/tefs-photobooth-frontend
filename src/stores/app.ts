@@ -48,14 +48,14 @@ export const useGalleryStore = defineStore("galleries", {
           const imagesArray = item.image || [];
 
           return imagesArray.map((img: any, index: number) => {
-            return imagesArray.map((img: any) => ({
+            const strapiPath = img.attributes?.url || img.url;
+
+            return {
               id: img.id,
-              imageUrl: img?.url
-                ? img.attributes?.url
-                : `${BASE_URL}${img.attributes.url}`
-                  ? fallbackGallery[index % fallbackGallery.length]
-                  : `https://placehold.co/600x400?text=No+Image+Found`,
-            }));
+              imageUrl: strapiPath
+                ? `${BASE_URL}${strapiPath}`
+                : fallbackGallery[index % fallbackGallery.length],
+            };
           });
         });
 
