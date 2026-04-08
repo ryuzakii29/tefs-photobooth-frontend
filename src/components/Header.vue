@@ -71,8 +71,11 @@ onMounted(() => {
 watch(
     () => userStore.currentTheme,
     (newTheme) => {
-        theme.global.name.value = newTheme;
-    }
+        if (newTheme) {
+            theme.global.name.value = newTheme;
+        }
+    },
+    { immediate: true }
 )
 
 const navItems = [

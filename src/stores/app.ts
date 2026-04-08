@@ -90,7 +90,7 @@ export const useGalleryStore = defineStore("galleries", {
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    userOptions: userStore?.userOptions || {
+    userOptions: {
       theme: "light",
       package: null,
     },
