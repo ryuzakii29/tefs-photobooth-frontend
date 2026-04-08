@@ -9,7 +9,7 @@
                 <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" label="Search" single-line hide-details
                     density="compact" class="me-4"></v-text-field>
 
-                <v-btn color="success" prepend-icon="mdi-download" @click="downloadCSV">
+                <v-btn color="success" prepend-icon="mdi-download" @click="triggerDownload">
                     Export CSV
                 </v-btn>
             </v-card-title>
@@ -29,7 +29,7 @@
 
                 <template v-slot:item.progress="{ item }">
                     <v-select v-model="item.progress" :items="statusOptions" density="compact" hide-details
-                        variant="underlined" @update:model-value="updateStatus(item)"></v-select>
+                        variant="underlined" @update:model-value="triggerUpdateStatus(item)"></v-select>
                 </template>
 
                 <template v-slot:item.event_date="{ item }">
@@ -46,11 +46,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { fetchReservations, updateStatus } from '@/api';
+import { downloadCSV } from '@/composables';
 
 // Configuration
-const baseURL = import.meta.env.VITE_API_BASE_URL;
-const STRAPI_URL = `${baseURL}/api/reservations`;
 const statusOptions = ['pending', 'confirmed', 'cancelled', 'done'];
 
 // State
@@ -61,88 +60,46 @@ const snackbar = ref({ show: false, text: '', color: '' });
 
 const headers = [
     { title: 'Name', key: 'name' },
-    { title: 'Date', key: 'event_date' },
-    { title: 'Time', key: 'event_time' },
+    { title: 'Reservation Date', key: 'event_date' },
+    { title: 'Reservation Time', key: 'event_time' },
     { title: 'Package', key: 'package' },
+    { title: 'Address', key: 'address' },
     { title: 'Payment', key: 'payment' },
     { title: 'Status', key: 'progress', width: '150px' },
 ];
 
-const fetchReservations = async () => {
-    const token = localStorage.getItem('strapi_jwt');
+const triggerFetchReservations = async () => {
     loading.value = true;
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    try {
-        const response = await axios.get(`${apiBaseUrl}/api/reservations?populate=*`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        reservations.value = response.data.data.map(item => ({
-            id: item.id,
+    const response = await fetchReservations();
+    console.log("API Response:", response);
+    if (response.data.length > 0) {
+        reservations.value = response.data.map(item => ({
             ...item
         }));
-    } catch (error) {
-        if (error.response?.status === 403) alert("You don't have permission!");
-    } finally {
         loading.value = false;
+    } else {
+        showMsg('Failed to fetch reservations', 'error');
     }
 };
 
-// Update Status in Strapi
-const updateStatus = async (item) => {
-    try {
-        await axios.put(`${STRAPI_URL}/${item.id}`, {
-            data: { progress: item.progress, paid: (item.progress === 'confirmed' || item.progress === 'done') ? true : item.payment }
-        });
-        showMsg(`Status updated to ${item.progress}`, 'success');
-    } catch (error) {
-        showMsg('Update failed', 'error');
+const triggerUpdateStatus = async (reservation) => {
+    const response = await updateStatus(reservation);
+    if (response) {
+        showMsg(`Status updated to ${reservation.progress}`, 'success');
+        triggerFetchReservations();
+    } else {
+        showMsg('Failed to update status', 'error');
     }
 };
 
 // CSV Export Logic
-const downloadCSV = () => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    const filename = `tefs-reservations-${currentDate}.csv`;
-
-    // Define columns for CSV
-    const rows = reservations.value.map(r => ({
-        UniqueID: r.url,
-        Name: r.name,
-        Email: r.email,
-        Contact: r.contact_number,
-        Package: r.package.name,
-        Date: r.event_date,
-        Time: r.event_time,
-        Status: r.progress,
-        Paid: r.payment ? 'Yes' : 'No',
-        Note: r.note || '',
-    }));
-
-    if (rows.length === 0) return;
-
-    const headerKeys = Object.keys(rows[0]);
-    const csvContent = [
-        headerKeys.join(','),
-        ...rows.map(row => headerKeys.map(key => `"${row[key]}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+const triggerDownload = () => {
+    downloadCSV(reservations.value);
 };
 
 const showMsg = (text, color) => {
     snackbar.value = { show: true, text, color };
 };
 
-onMounted(fetchReservations);
+onMounted(triggerFetchReservations);
 </script>

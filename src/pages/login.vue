@@ -12,7 +12,7 @@
                     </v-card-item>
 
                     <v-card-text>
-                        <v-form @submit.prevent="handleLogin" ref="form">
+                        <v-form @submit.prevent="login" ref="form">
                             <v-text-field v-model="email" label="Email / Username" prepend-inner-icon="mdi-account"
                                 type="text" variant="outlined" :rules="[v => !!v || 'Required']"
                                 required></v-text-field>
@@ -41,7 +41,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { handleLogin } from '@/api';
 
 const router = useRouter();
 
@@ -52,28 +52,19 @@ const loading = ref(false);
 const showPassword = ref(false);
 const errorMessage = ref('');
 
-const handleLogin = async () => {
-    if (!email.value || !password.value) return;
-
+const login = async () => {
     loading.value = true;
     errorMessage.value = '';
 
     try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-        const response = await axios.post(`${apiBaseUrl}/api/auth/local`, {
-            identifier: email.value,
-            password: password.value,
-        });
-
-        localStorage.setItem('strapi_jwt', response.data.jwt);
-
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-
-        router.push('/admin/reservations');
-
+        const success = await handleLogin(email.value, password.value);
+        if (success) {
+            router.push('/admin/reservations');
+        } else {
+            errorMessage.value = 'Invalid credentials. Please try again.';
+        }
     } catch (error) {
-        console.error('Login error:', error);
-        errorMessage.value = error.response?.data?.error?.message || 'Invalid credentials. Please try again.';
+        errorMessage.value = 'An error occurred during login. Please try again.';
     } finally {
         loading.value = false;
     }

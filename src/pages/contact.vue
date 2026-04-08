@@ -48,13 +48,6 @@
                             </div>
                         </v-col>
                     </v-row>
-
-                    <!-- <v-row justify="center" class="mt-10">
-                        <v-btn color="primary" size="large" rounded="lg" variant="elevated"
-                            class="text-capitalize font-weight-bold px-10" prepend-icon="mdi-calendar-check">
-                            Book Your Event
-                        </v-btn>
-                    </v-row> -->
                 </v-card>
             </v-col>
         </v-row>

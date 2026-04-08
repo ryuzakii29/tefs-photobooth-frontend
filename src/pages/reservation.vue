@@ -35,6 +35,26 @@
                                 :rules="[rules.required, rules.futureTime]"></v-text-field>
                         </v-col>
 
+                        <v-col cols="12" sm="4">
+                            <v-text-field v-model="addrParts.house" label="House/Unit No." variant="outlined"
+                                density="comfortable" :rules="[rules.required]"></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" sm="8">
+                            <v-text-field v-model="addrParts.street" label="Street / Village / Brgy" variant="outlined"
+                                density="comfortable" :rules="[rules.required]"></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" sm="6">
+                            <v-text-field v-model="addrParts.city" label="City / Municipality" variant="outlined"
+                                density="comfortable" :rules="[rules.required]"></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" sm="6">
+                            <v-text-field v-model="addrParts.province" label="Province" variant="outlined"
+                                density="comfortable" :rules="[rules.required]"></v-text-field>
+                        </v-col>
+
                         <v-col cols="12">
                             <v-select v-model="formData.package" :items="availablePackages" item-title="name"
                                 item-value="id" label="Select Package" variant="outlined" density="comfortable"
@@ -59,7 +79,7 @@
                 <v-spacer></v-spacer>
 
                 <v-btn color="primary" variant="elevated" size="large" :disabled="!isValid" :loading="loading"
-                    @click="submitReservation">
+                    @click="triggerSubmit">
                     Submit Reservation
                 </v-btn>
             </v-card-actions>
@@ -70,10 +90,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, watch } from 'vue' // Added watch
 import ReservationStatusDialog from '@/components/Dialog.vue'
 import { usePackageStore, useUserStore } from '@/stores/app'
 import { useRouter } from 'vue-router'
+import { submitReservation } from '@/api'
 
 const formRef = ref(null)
 const isValid = ref(false)
@@ -82,7 +103,24 @@ const availablePackages = ref([])
 const packageStore = usePackageStore()
 const userStore = useUserStore()
 
-const minDate = new Date().toISOString().split('T')[0]
+const minDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })).toLocaleDateString('en-CA');
+
+// Address parts for the UI
+const addrParts = reactive({
+    house: '',
+    street: '',
+    city: '',
+    province: ''
+})
+
+// Watch address parts and combine them into formData.address
+watch(addrParts, (newVal) => {
+    const { house, street, city, province } = newVal
+    // Concatenate into a standard string format
+    formData.value.address = [house, street, city, province]
+        .filter(part => part.trim() !== '') // Only include non-empty parts
+        .join(', ')
+}, { deep: true })
 
 // Validation Rules
 const rules = {
@@ -100,22 +138,17 @@ const rules = {
 
         const today = new Date()
         const selectedDate = new Date(formData.value.event_date)
-
-        // Check if selected date is today (ignoring hours)
         const isToday = selectedDate.toDateString() === today.toDateString()
 
         if (isToday) {
             const [hours, minutes] = value.split(':')
             const selectedTime = new Date()
             selectedTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-
             return selectedTime > today || 'This time has already passed.'
         }
-
         return true
     }
 }
-
 
 const formData = ref({
     name: '',
@@ -127,12 +160,12 @@ const formData = ref({
     notes: '',
     progress: 'pending',
     payment: false,
-    url: ''
+    url: '',
+    address: ''
 })
 
 const router = useRouter()
 
-// Group your dialog states for cleaner code
 const dialogs = reactive({
     success: false,
     error: false,
@@ -144,51 +177,28 @@ const handleTrackNavigation = () => {
     router.push(`/reservation/${formData.value.url}`)
 }
 
-
 const clearForm = () => {
     formRef.value.reset()
+    addrParts.house = ''
+    addrParts.street = ''
+    addrParts.city = ''
+    addrParts.province = ''
+
     if (userStore.selectedPackage) {
         formData.value.package = null
     }
 }
 
-const generateTrackingUrl = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let result = ''
-    for (let i = 0; i < 12; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return `tef-${result}-${Date.now().toString().slice(-4)}`
-}
-
-const submitReservation = async () => {
+const triggerSubmit = async function () {
     loading.value = true
-    formData.value.url = generateTrackingUrl()
-
-    const payload = {
-        ...formData.value,
-        event_time: formData.value.event_time ? `${formData.value.event_time}:00.000` : null
-    }
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    try {
-        const response = await fetch(`${apiBaseUrl}/api/reservations`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: payload }), // Use formatted payload here
-        })
-
-        if (response.ok) {
-            dialogs.success = true
-        } else {
-            const errorData = await response.json()
-            dialogs.message = errorData.error?.message || 'Server error'
-            dialogs.error = true
-        }
-    } catch (error) {
-        dialogs.message = 'Network error. Please try again.'
-        dialogs.error = true
-    } finally {
+    const response = await submitReservation(formData)
+    if (response.ok) {
+        dialogs.success = true;
         loading.value = false
+    } else {
+        const errorData = await response.json();
+        dialogs.message = errorData.error?.message || "Server error";
+        dialogs.error = true;
     }
 }
 
