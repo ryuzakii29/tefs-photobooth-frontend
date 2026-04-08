@@ -6,7 +6,7 @@ const router = createRouter({
     { path: "/login", component: () => import("@/pages/login.vue") },
     {
       path: "/admin/reservations",
-      component: () => import("../views/AdminReservations.vue"),
+      component: () => import("../pages/admin.vue"),
       beforeEnter: (to, from, next) => {
         const token = localStorage.getItem("strapi_jwt");
         if (!token) {
