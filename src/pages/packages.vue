@@ -1,4 +1,5 @@
 <template>
+    THIS IS PACKAGE
     <v-container class="py-10">
         <div v-for="(item, index) in packageStore.allPackages" :key="item.id" class="mb-12">
             <v-row align="center" :class="index % 2 !== 0 ? 'flex-row-reverse' : ''">
