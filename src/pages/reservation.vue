@@ -169,7 +169,7 @@ const submitReservation = async () => {
         ...formData.value,
         event_time: formData.value.event_time ? `${formData.value.event_time}:00.000` : null
     }
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:1337";
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL;
     try {
         const response = await fetch(`${apiBaseUrl}/api/reservations`, {
             method: 'POST',
