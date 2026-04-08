@@ -19,21 +19,15 @@ export const usePackageStore = defineStore("packages", {
     async fetchPackages() {
       try {
         const res = await axios.get(`${API}/packages?populate=*`);
-        console.log("RAW DATA FROM API:", res.data.data); // <--- Add this
-        this.packages = res.data.data.map((pkg: any) => {
-          const attrs = pkg.attributes || pkg;
-          const imgData = attrs.image?.data || attrs.image;
 
-          let path = null;
-          if (Array.isArray(imgData)) {
-            path = imgData[0]?.attributes?.url || imgData[0]?.url;
-          } else {
-            path = imgData?.attributes?.url || imgData?.url;
-          }
+        // Strapi 5 flat mapping
+        this.packages = res.data.data.map((pkg: any) => {
+          // In your log, image is an array: image: [{…}]
+          const firstImage = pkg.image?.[0];
+          const path = firstImage?.url || null;
 
           return {
-            id: pkg.id,
-            ...attrs,
+            ...pkg, // This spreads name, price, description, etc. directly
             imageUrl: formatImageUrl(path),
           };
         });
@@ -54,21 +48,13 @@ export const useGalleryStore = defineStore("galleries", {
         const res = await axios.get(`${API}/galleries?populate=*`);
 
         const allImages = res.data.data.flatMap((item: any) => {
-          const attrs = item.attributes || item;
-          const imagesData = attrs.image?.data || attrs.image || [];
+          // Target the flat image array
+          const imagesArray = item.image || [];
 
-          // Ensure imagesData is treated as an array
-          const imagesArray = Array.isArray(imagesData)
-            ? imagesData
-            : [imagesData];
-
-          return imagesArray.map((img: any) => {
-            const path = img.attributes?.url || img.url;
-            return {
-              id: img.id,
-              imageUrl: formatImageUrl(path),
-            };
-          });
+          return imagesArray.map((img: any) => ({
+            id: img.id,
+            imageUrl: formatImageUrl(img.url),
+          }));
         });
 
         this.galleries = this.shuffleArray(allImages);
@@ -76,7 +62,6 @@ export const useGalleryStore = defineStore("galleries", {
         console.error("Failed to fetch galleries:", error);
       }
     },
-
     shuffleArray(array: any[]) {
       return array.sort(() => Math.random() - 0.5);
     },
