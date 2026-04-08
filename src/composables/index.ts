@@ -22,20 +22,23 @@ export const downloadCSV = (reservations: any) => {
     .replace(/:/g, "-");
   const filename = `tefs-reservations-${currentDate}-${currentTime}.csv`;
 
-  // Define columns for CSV
-  const rows = reservations.map((r: any) => ({
-    URL: `${apiBaseUrl}/reservation/${r.url}`,
-    Created: new Date(r.createdAt).toLocaleString(),
+  const sortedReservations = [...reservations].sort((a: any, b: any) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const rows = sortedReservations.map((r: any) => ({
+    Created: new Date(r.createdAt).toLocaleString("en-PH"), // Localized for PH
+    URL: `https://tefs-photobooth.vercel.app/reservation/${r.url}`,
     Name: r.name,
     Email: r.email,
     Contact: r.contact_number,
-    Package: r.package.name,
+    Package: r.package?.name || "N/A",
     Reservation_Date: r.event_date,
     Reservation_Time: r.event_time,
     Status: r.progress,
     Paid: r.payment ? "Yes" : "No",
     Address: r.address,
-    Note: r.note || "",
+    Note: r.notes || "",
   }));
 
   if (rows.length === 0) return;
@@ -44,7 +47,9 @@ export const downloadCSV = (reservations: any) => {
   const csvContent = [
     headerKeys.join(","),
     ...rows.map((row: any) =>
-      headerKeys.map((key) => `"${row[key]}"`).join(","),
+      headerKeys
+        .map((key) => `"${String(row[key]).replace(/"/g, '""')}"`)
+        .join(","),
     ),
   ].join("\n");
 
