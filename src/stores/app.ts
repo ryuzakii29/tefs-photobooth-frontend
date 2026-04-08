@@ -19,7 +19,7 @@ export const usePackageStore = defineStore("packages", {
     async fetchPackages() {
       try {
         const res = await axios.get(`${API}/packages?populate=*`);
-
+        console.log("RAW DATA FROM API:", res.data.data); // <--- Add this
         this.packages = res.data.data.map((pkg: any) => {
           const attrs = pkg.attributes || pkg;
           const imgData = attrs.image?.data || attrs.image;
