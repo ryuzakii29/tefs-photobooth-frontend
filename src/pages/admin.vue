@@ -47,7 +47,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import { P } from 'vue-router/dist/index-BzEKChPW.js';
 
 // Configuration
 const baseURL = import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL;

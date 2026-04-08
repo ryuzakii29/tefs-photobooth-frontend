@@ -46,17 +46,13 @@ export const useGalleryStore = defineStore("galleries", {
         const res = await axios.get(`${API}/galleries?populate=*`);
 
         const allImages = res.data.data.flatMap((item: any) => {
-          // Target the flat image array
           const imagesArray = item.image || [];
 
           return imagesArray.map((img: any, index: number) => {
-            // Check if URL exists.
-            // NOTE: Strapi v4 uses img.attributes.url, Strapi v5 often uses img.url directly.
             const strapiPath = img.attributes?.url || img.url;
 
             return {
               id: img.id,
-              // REMOVED quotes around fallbackGallery to access the actual array
               imageUrl: strapiPath
                 ? `${BASE_URL}${strapiPath}`
                 : fallbackGallery[index % fallbackGallery.length],
