@@ -59,7 +59,7 @@ const handleLogin = async () => {
     errorMessage.value = '';
 
     try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL;
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
         const response = await axios.post(`${apiBaseUrl}/api/auth/local`, {
             identifier: email.value,
             password: password.value,

@@ -81,7 +81,7 @@ const statusColor = computed(() => {
 
 onMounted(async () => {
     try {
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL
         // Strapi filter syntax: filters[field][$eq]=value
         const response = await fetch(`${BASE_URL}/api/reservations?filters[url][$eq]=${trackingId}`)
         const result = await response.json()

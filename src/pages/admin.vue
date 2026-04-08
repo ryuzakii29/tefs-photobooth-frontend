@@ -49,7 +49,7 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
 // Configuration
-const baseURL = import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 const STRAPI_URL = `${baseURL}/api/reservations`;
 const statusOptions = ['pending', 'confirmed', 'cancelled', 'done'];
 
@@ -71,7 +71,7 @@ const headers = [
 const fetchReservations = async () => {
     const token = localStorage.getItem('strapi_jwt');
     loading.value = true;
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL;
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     try {
         const response = await axios.get(`${apiBaseUrl}/api/reservations?populate=*`, {
             headers: {
