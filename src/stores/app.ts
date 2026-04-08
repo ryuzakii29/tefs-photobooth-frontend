@@ -1,40 +1,39 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
-const formatImageUrl = (path: string | null) => {
-  if (!path) return `https://placehold.co/600x400?text=No+Image`;
-  if (path.startsWith("http")) return path;
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:1337";
-  return `${BASE_URL}${path}`;
-};
+import { packageStore, userStore } from "./state";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:1337";
 const API = `${BASE_URL}/api`;
 
 export const usePackageStore = defineStore("packages", {
   state: () => ({
-    packages: [] as any[],
+    packages: packageStore?.packages || [],
   }),
+  getters: {
+    allPackages: (state) => state.packages,
+  },
   actions: {
     async fetchPackages() {
       try {
         const res = await axios.get(`${API}/packages?populate=*`);
-
         this.packages = res.data.data.map((pkg: any) => {
-          const attrs = pkg.attributes || pkg;
-          const imgData = attrs.image?.data || attrs.image;
+          const imgData = pkg.attributes?.image?.data || pkg.image?.data;
 
-          let path = null;
+          let imgPath = null;
+
           if (Array.isArray(imgData)) {
-            path = imgData[0]?.attributes?.url || imgData[0]?.url;
-          } else {
-            path = imgData?.attributes?.url || imgData?.url;
+            imgPath = imgData[0]?.attributes?.url;
+          } else if (imgData) {
+            imgPath = imgData.attributes?.url;
           }
 
           return {
             id: pkg.id,
-            ...attrs,
-            imageUrl: formatImageUrl(path),
+            ...pkg.attributes,
+            imageUrl: imgPath
+              ? `${BASE_URL}${imgPath}`
+              : `https://placehold.co/600x400?text=No+Image+Found`,
           };
         });
       } catch (error) {
@@ -54,21 +53,16 @@ export const useGalleryStore = defineStore("galleries", {
         const res = await axios.get(`${API}/galleries?populate=*`);
 
         const allImages = res.data.data.flatMap((item: any) => {
-          const attrs = item.attributes || item;
-          const imagesData = attrs.image?.data || attrs.image || [];
+          // Extract the array of images from the gallery item
+          const imagesArray =
+            item.attributes?.image?.data || item.image?.data || [];
 
-          // Ensure imagesData is treated as an array
-          const imagesArray = Array.isArray(imagesData)
-            ? imagesData
-            : [imagesData];
-
-          return imagesArray.map((img: any) => {
-            const path = img.attributes?.url || img.url;
-            return {
-              id: img.id,
-              imageUrl: formatImageUrl(path),
-            };
-          });
+          return imagesArray.map((img: any) => ({
+            id: img.id,
+            imageUrl: img.attributes?.url
+              ? `${BASE_URL}${img.attributes.url}`
+              : `https://placehold.co/600x400?text=No+Image`,
+          }));
         });
 
         this.galleries = this.shuffleArray(allImages);
@@ -78,21 +72,29 @@ export const useGalleryStore = defineStore("galleries", {
     },
 
     shuffleArray(array: any[]) {
-      return array.sort(() => Math.random() - 0.5);
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
     },
   },
 });
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    userOptions: {
+    userOptions: userStore?.userOptions || {
       theme: "light",
-      package: null as any,
+      package: null,
     },
   }),
   persist: {
     // Specify only the nested path you want to save
     pick: ["userOptions.theme"],
+  },
+  getters: {
+    currentTheme: (state) => state.userOptions.theme,
+    selectedPackage: (state) => state.userOptions.package,
   },
   actions: {
     setTheme(theme: string) {

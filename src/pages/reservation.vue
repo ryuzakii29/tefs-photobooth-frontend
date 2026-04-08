@@ -169,9 +169,9 @@ const submitReservation = async () => {
         ...formData.value,
         event_time: formData.value.event_time ? `${formData.value.event_time}:00.000` : null
     }
-
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:1337";
     try {
-        const response = await fetch('http://localhost:1337/api/reservations', {
+        const response = await fetch(`${apiBaseUrl}/api/reservations`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data: payload }), // Use formatted payload here
