@@ -47,6 +47,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { P } from 'vue-router/dist/index-BzEKChPW.js';
 
 // Configuration
 const baseURL = import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL;
@@ -68,9 +69,8 @@ const headers = [
     { title: 'Status', key: 'progress', width: '150px' },
 ];
 
-// Fetch Data
 const fetchReservations = async () => {
-    const token = localStorage.getItem('strapi_jwt'); // You get this after logging in
+    const token = localStorage.getItem('strapi_jwt');
     loading.value = true;
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.LOCAL_STRAPI_URL;
     try {
@@ -81,7 +81,7 @@ const fetchReservations = async () => {
         });
         reservations.value = response.data.data.map(item => ({
             id: item.id,
-            ...item.attributes
+            ...item
         }));
     } catch (error) {
         if (error.response?.status === 403) alert("You don't have permission!");
@@ -94,7 +94,7 @@ const fetchReservations = async () => {
 const updateStatus = async (item) => {
     try {
         await axios.put(`${STRAPI_URL}/${item.id}`, {
-            data: { progress: item.progress }
+            data: { progress: item.progress, paid: (item.progress === 'confirmed' || item.progress === 'done') ? true : item.payment }
         });
         showMsg(`Status updated to ${item.progress}`, 'success');
     } catch (error) {
@@ -109,13 +109,16 @@ const downloadCSV = () => {
 
     // Define columns for CSV
     const rows = reservations.value.map(r => ({
+        UniqueID: r.url,
         Name: r.name,
         Email: r.email,
         Contact: r.contact_number,
+        Package: r.package.name,
         Date: r.event_date,
         Time: r.event_time,
         Status: r.progress,
-        Paid: r.payment ? 'Yes' : 'No'
+        Paid: r.payment ? 'Yes' : 'No',
+        Note: r.note || '',
     }));
 
     if (rows.length === 0) return;
