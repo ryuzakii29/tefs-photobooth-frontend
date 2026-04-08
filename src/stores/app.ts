@@ -96,7 +96,6 @@ export const useUserStore = defineStore("user", {
     },
   }),
   persist: {
-    // Specify only the nested path you want to save
     pick: ["userOptions.theme"],
   },
   getters: {

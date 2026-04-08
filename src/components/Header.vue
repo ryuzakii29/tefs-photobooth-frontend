@@ -60,20 +60,20 @@ const drawer = ref(false)
 const userStore = useUserStore()
 
 function toggleTheme() {
-    userStore.setTheme(theme.global.current.value.dark ? 'light' : 'dark');
+    const newTheme = theme.global.name.value === 'dark' ? 'light' : 'dark';
+    userStore.setTheme(newTheme);
 }
 
 onMounted(() => {
-    theme.change(userStore.currentTheme);
+    theme.global.name.value = userStore.currentTheme;
 })
 
 watch(
     () => userStore.currentTheme,
     (newTheme) => {
-        theme.change(newTheme);
+        theme.global.name.value = newTheme;
     }
 )
-
 
 const navItems = [
     { title: 'Home', to: '/' },
